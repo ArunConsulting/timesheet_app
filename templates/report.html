@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Consultant Report</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; max-width: 900px; margin: 0 auto; color: #333; }
+        h1, h2 { color: #2c3e50; }
+        
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        
+        /* Summary Box */
+        .summary-box { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 30px; }
+        
+        /* Filter Control Panel */
+        .controls { 
+            background: #eef; padding: 15px; border-radius: 5px; 
+            margin-bottom: 20px; display: flex; gap: 10px; align-items: center; 
+            border: 1px solid #ccd;
+        }
+        .controls input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 14px;}
+        .btn-update { background: #007bff; color: white; }
+        .btn-print { background: #333; color: white; margin-left: auto; }
+
+        /* Hide controls when printing */
+        @media print {
+            .controls, .no-print { display: none !important; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <form action="/report" method="get" style="display:flex; gap:10px; align-items:center; margin:0;">
+            <label><strong>Date Range:</strong></label>
+            <input type="date" name="start_date" value="{{ start_date }}" required>
+            <span>to</span>
+            <input type="date" name="end_date" value="{{ end_date }}" required>
+            <button type="submit" class="btn btn-update">Update Report</button>
+        </form>
+        <button onclick="window.print()" class="btn btn-print">🖨️ Print / Save PDF</button>
+    </div>
+
+    <h1>Timesheet Report</h1>
+    <p><strong>Period:</strong> {{ start_date }} to {{ end_date }}</p>
+
+    <div class="summary-box">
+        <h2>Billing Summary (Client & Task)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Client / Task</th>
+                    <th>Hours</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client, data in summary.items() %}
+                    <tr style="background-color: #e2e6ea;">
+                        <td colspan="2"><strong>📂 {{ client }}</strong></td>
+                    </tr>
+                    {% for task, hours in data.tasks.items() %}
+                    <tr>
+                        <td style="padding-left: 30px; color: #555;">• {{ task }}</td>
+                        <td>{{ hours }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr style="border-bottom: 2px solid #ccc; font-weight: bold;">
+                        <td style="text-align: right;">Total for {{ client }}:</td>
+                        <td>{{ data.total }}</td>
+                    </tr>
+                {% endfor %}
+                <tr style="background: #333; color: #fff; font-size: 1.1em;">
+                    <td style="text-align: right;">GRAND TOTAL</td>
+                    <td>{{ total }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Detailed Logs</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Task</th>
+                <th>Details</th>
+                <th>Hours</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.log_date }}</td>
+                <td>{{ log.client }}</td>
+                <td>{{ log.task }}</td>
+                <td>{{ log.details }}</td>
+                <td>{{ log.hours }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #777;">No logs found for this period.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

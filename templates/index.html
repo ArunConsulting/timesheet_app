@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timesheet Timer</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        
+        /* Layout */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;}
+        .btn-report { background: #007bff; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; }
+        
+        /* Cards */
+        .card { padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .start-card { background: #f8f9fa; border-left: 5px solid #28a745; }
+        .stop-card { background: #e8f5e9; border-left: 5px solid #dc3545; }
+        
+        /* Form Elements */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        button { border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn-start { background: #28a745; color: white; width: 100%; }
+        .btn-stop { background: #dc3545; color: white; width: 100%; }
+        
+        /* Live Timer */
+        .live-timer { font-size: 2em; font-family: monospace; text-align: center; margin: 10px 0; color: #d63384; }
+        
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
+        th { background-color: #f8f9fa; color: #666; font-size: 0.85em; text-transform: uppercase; }
+        .date-col { width: 100px; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Consultant Timesheet</h1>
+        <a href="/download_csv" class="btn-report" style="background-color: #28a745;">Download Excel</a>
+        <a href="/report" class="btn-report" target="_blank">View Report</a>
+    </div>
+
+    {% if active_log %}
+    <div class="card stop-card">
+        <h2 style="margin-top:0">⏱️ Task in Progress</h2>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <div><strong>Client:</strong> {{ active_log.client }}</div>
+            <div><strong>Task:</strong> {{ active_log.task }}</div>
+        </div>
+
+        <div class="live-timer" id="timerDisplay">00:00:00</div>
+        
+        <form action="/stop" method="post">
+            <input type="hidden" name="log_id" value="{{ active_log.id }}">
+            
+            <div class="form-group">
+                <label>Work Details (What did you achieve?):</label>
+                <textarea name="details" rows="2" placeholder="e.g. Completed API integration..." required></textarea>
+            </div>
+            
+            <button type="submit" class="btn-stop">Stop Timer & Log</button>
+        </form>
+    </div>
+
+    <script>
+        // Simple JS to update the timer every second
+        const startTime = new Date("{{ active_log.start_time }}").getTime();
+        
+        function updateTimer() {
+            const now = new Date().getTime();
+            const diff = now - startTime;
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById("timerDisplay").innerHTML = 
+                (hours < 10 ? "0" + hours : hours) + ":" +
+                (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                (seconds < 10 ? "0" + seconds : seconds);
+        }
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    </script>
+
+    {% else %}
+    <div class="card start-card">
+        <h2 style="margin-top:0">🚀 Start New Task</h2>
+        <form action="/start" method="post">
+            <div class="form-group">
+                <label>Client:</label>
+                <input type="text" name="client" list="clients" placeholder="Search or type client name..." required autocomplete="off">
+                <datalist id="clients">
+                    <option value="Adfluence">
+                    <option value="Chainscript labs">
+                    </datalist>
+            </div>
+            
+            <div class="form-group">
+                <label>Task Name:</label>
+                <input type="text" name="task" placeholder="e.g. Bug Fixes" required>
+            </div>
+            
+            <button type="submit" class="btn-start">Start Timer</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <h3>Completed Logs ({{ today.strftime('%B') }})</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Client / Task</th>
+                <th>Details</th>
+                <th>Duration</th>
+                <th style="width: 80px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td class="date-col">{{ log.log_date }}</td>
+                <td>
+                    <strong>{{ log.client }}</strong><br>
+                    <small>{{ log.task }}</small>
+                </td>
+                <td>{{ log.details }}</td>
+                <td><strong>{{ log.hours }} hrs</strong></td>
+                <td style="text-align: center;">
+                    <a href="/edit/{{ log.id }}" style="color: #007bff; text-decoration: none; font-size: 0.9em;">✏️ Edit</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #999; padding: 20px;">No completed logs this month.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
