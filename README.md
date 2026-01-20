@@ -1,8 +1,4 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Project Overview
+# Project Overview
 
 A web-based timesheet application built with FastAPI for consultants to track billable hours. Features a timer-based workflow where users start/stop tasks and generate billing reports.
 
