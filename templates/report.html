@@ -3,7 +3,7 @@
 <head>
     <title>Consultant Report</title>
     <style>
-        body { font-family: sans-serif; padding: 40px; max-width: 900px; margin: 0 auto; color: #333; }
+        body { font-family: sans-serif; padding: 40px; max-width: 950px; margin: 0 auto; color: #333; }
         h1, h2 { color: #2c3e50; }
         
         /* Table Styles */
@@ -18,14 +18,29 @@
         .controls { 
             background: #eef; padding: 15px; border-radius: 5px; 
             margin-bottom: 20px; display: flex; gap: 10px; align-items: center; 
-            border: 1px solid #ccd;
+            border: 1px solid #ccd; flex-wrap: wrap;
         }
         .controls input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 14px;}
+        .btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; }
         .btn-update { background: #007bff; color: white; }
+        .btn-back { background: #6c757d; color: white; }
+        .btn-preset { background: #e2e8f0; color: #333; }
+        .btn-preset:hover { background: #cbd5e1; }
         .btn-print { background: #333; color: white; margin-left: auto; }
 
-        /* Hide controls when printing */
+        .btn-edit {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #eef7ff;
+            border: 1px solid #cce5ff;
+        }
+        .btn-edit:hover { background: #b8daff; }
+
+        /* Hide controls and action column when printing */
         @media print {
             .controls, .no-print { display: none !important; }
             body { padding: 0; }
@@ -35,13 +50,19 @@
 <body>
 
     <div class="controls">
-        <form action="/report" method="get" style="display:flex; gap:10px; align-items:center; margin:0;">
-            <label><strong>Date Range:</strong></label>
+        <a href="/" class="btn btn-back">← Timesheet</a>
+        
+        <form action="/report" method="get" style="display:flex; gap:8px; align-items:center; margin:0; flex-wrap: wrap;">
+            <label><strong>Dates:</strong></label>
             <input type="date" name="start_date" value="{{ start_date }}" required>
             <span>to</span>
             <input type="date" name="end_date" value="{{ end_date }}" required>
-            <button type="submit" class="btn btn-update">Update Report</button>
+            <button type="submit" class="btn btn-update">Update</button>
         </form>
+
+        <a href="/report?start_date={{ prev_month_start }}&end_date={{ prev_month_end }}" class="btn btn-preset">◀ Previous Month</a>
+        <a href="/report?start_date={{ curr_month_start }}&end_date={{ curr_month_end }}" class="btn btn-preset">This Month</a>
+
         <button onclick="window.print()" class="btn btn-print">🖨️ Print / Save PDF</button>
     </div>
 
@@ -90,20 +111,25 @@
                 <th>Task</th>
                 <th>Details</th>
                 <th>Hours</th>
+                <th class="no-print" style="width: 70px; text-align: center;">Action</th>
             </tr>
         </thead>
         <tbody>
             {% for log in logs %}
+            {% set prev = logs[loop.index0 - 1] if loop.index0 > 0 else None %}
             <tr>
                 <td>{{ log.log_date }}</td>
-                <td>{{ log.client }}</td>
-                <td>{{ log.task }}</td>
+                <td>{{ log.client if not prev or log.client != prev.client else '' }}</td>
+                <td>{{ log.task if not prev or log.task != prev.task or log.client != prev.client else '' }}</td>
                 <td>{{ log.details }}</td>
-                <td>{{ log.hours }}</td>
+                <td><strong>{{ log.hours }}</strong></td>
+                <td class="no-print" style="text-align: center;">
+                    <a href="/edit/{{ log.id }}?return_to=report&start_date={{ start_date }}&end_date={{ end_date }}" class="btn-edit">✏️ Edit</a>
+                </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="5" style="text-align: center; color: #777;">No logs found for this period.</td>
+                <td colspan="6" style="text-align: center; color: #777; padding: 20px;">No logs found for this period.</td>
             </tr>
             {% endfor %}
         </tbody>

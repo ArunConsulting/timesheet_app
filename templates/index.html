@@ -3,42 +3,105 @@
 <head>
     <title>Timesheet Timer</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        body { font-family: sans-serif; max-width: 850px; margin: 0 auto; padding: 20px; color: #333; }
         
         /* Layout */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;}
-        .btn-report { background: #007bff; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; }
+        .header-actions { display: flex; gap: 10px; }
+        .btn-report { background: #007bff; color: white; padding: 8px 14px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.9em; display: inline-flex; align-items: center; }
+        .btn-report:hover { opacity: 0.9; }
         
         /* Cards */
         .card { padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .start-card { background: #f8f9fa; border-left: 5px solid #28a745; }
         .stop-card { background: #e8f5e9; border-left: 5px solid #dc3545; }
         
+        /* Tab switcher */
+        .tab-bar { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 2px solid #e9ecef; padding-bottom: 8px; }
+        .tab-btn { background: none; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 15px; font-weight: 600; color: #6c757d; }
+        .tab-btn.active { background: #e9ecef; color: #212529; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
         /* Form Elements */
         .form-group { margin-bottom: 15px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
         
         button { border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
         .btn-start { background: #28a745; color: white; width: 100%; }
+        .btn-start:hover { background: #218838; }
         .btn-stop { background: #dc3545; color: white; width: 100%; }
+        .btn-stop:hover { background: #c82333; }
         
         /* Live Timer */
-        .live-timer { font-size: 2em; font-family: monospace; text-align: center; margin: 10px 0; color: #d63384; }
+        .live-timer { font-size: 2.2em; font-family: monospace; text-align: center; margin: 15px 0; color: #d63384; font-weight: bold; }
         
+        /* Month Nav Bar */
+        .month-nav-container { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin: 25px 0 15px 0; 
+            background: #f1f4f8; 
+            padding: 10px 15px; 
+            border-radius: 6px; 
+            flex-wrap: wrap; 
+            gap: 10px;
+        }
+        .month-nav-controls { display: flex; align-items: center; gap: 8px; }
+        .btn-nav { 
+            background: #fff; 
+            border: 1px solid #ccd; 
+            color: #333; 
+            padding: 6px 12px; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            font-size: 0.9em; 
+        }
+        .btn-nav:hover { background: #e2e6ea; }
+        .month-select { 
+            padding: 6px 10px; 
+            border: 1px solid #ccd; 
+            border-radius: 4px; 
+            font-weight: 600; 
+            font-size: 0.95em; 
+            background: #fff; 
+            cursor: pointer;
+            width: auto;
+        }
+        .btn-today {
+            background: #007bff;
+            color: white;
+            padding: 6px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .btn-today:hover { opacity: 0.9; }
+        .month-stats { font-size: 1.05em; color: #2c3e50; font-weight: bold; }
+        .month-stats span { background: #e2e8f0; padding: 4px 8px; border-radius: 4px; margin-left: 5px; }
+
         /* Table */
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
-        th { background-color: #f8f9fa; color: #666; font-size: 0.85em; text-transform: uppercase; }
-        .date-col { width: 100px; color: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border-bottom: 1px solid #eee; padding: 12px 10px; text-align: left; vertical-align: middle; }
+        th { background-color: #f8f9fa; color: #555; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.5px; }
+        .date-col { width: 100px; color: #666; font-size: 0.9em; }
+        .btn-edit { color: #007bff; text-decoration: none; font-size: 0.9em; font-weight: bold; padding: 4px 8px; border-radius: 4px; border: 1px solid #cce5ff; background: #eef7ff; display: inline-block; }
+        .btn-edit:hover { background: #b8daff; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Consultant Timesheet</h1>
-        <a href="/download_csv" class="btn-report" style="background-color: #28a745;">Download Excel</a>
-        <a href="/report" class="btn-report" target="_blank">View Report</a>
+        <h1 style="margin:0;">Consultant Timesheet</h1>
+        <div class="header-actions">
+            <a href="/download_csv?month={{ selected_month }}" class="btn-report" style="background-color: #28a745;">📥 Download Excel</a>
+            <a href="/report?start_date={{ selected_month }}-01" class="btn-report">📊 View Report</a>
+        </div>
     </div>
 
     {% if active_log %}
@@ -65,13 +128,10 @@
     </div>
 
     <script>
-        // Simple JS to update the timer every second
         const startTime = new Date("{{ active_log.start_time }}").getTime();
-        
         function updateTimer() {
             const now = new Date().getTime();
             const diff = now - startTime;
-            
             const hours = Math.floor(diff / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
@@ -87,28 +147,113 @@
 
     {% else %}
     <div class="card start-card">
-        <h2 style="margin-top:0">🚀 Start New Task</h2>
-        <form action="/start" method="post">
-            <div class="form-group">
-                <label>Client:</label>
-                <input type="text" name="client" list="clients" placeholder="Search or type client name..." required autocomplete="off">
-                <datalist id="clients">
-                    <option value="Adfluence">
-                    <option value="Chainscript labs">
-                    </datalist>
-            </div>
-            
-            <div class="form-group">
-                <label>Task Name:</label>
-                <input type="text" name="task" placeholder="e.g. Bug Fixes" required>
-            </div>
-            
-            <button type="submit" class="btn-start">Start Timer</button>
-        </form>
+        <div class="tab-bar">
+            <button type="button" class="tab-btn active" id="tabTimerBtn" onclick="switchTab('timer')">⏱️ Start Live Timer</button>
+            <button type="button" class="tab-btn" id="tabManualBtn" onclick="switchTab('manual')">➕ Log Past Time (Manual Entry)</button>
+        </div>
+
+        <!-- Tab 1: Live Timer Form -->
+        <div class="tab-content active" id="tabTimer">
+            <form action="/start" method="post">
+                <div class="form-group">
+                    <label>Client:</label>
+                    <input type="text" name="client" list="clients" placeholder="Search or type client name..." required autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label>Task Name:</label>
+                    <input type="text" name="task" placeholder="e.g. Bug Fixes" required>
+                </div>
+                
+                <button type="submit" class="btn-start">Start Timer</button>
+            </form>
+        </div>
+
+        <!-- Tab 2: Manual Past Time Form -->
+        <div class="tab-content" id="tabManual">
+            <form action="/manual" method="post">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date:</label>
+                        <input type="date" name="log_date" value="{{ today.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hours Worked:</label>
+                        <input type="number" step="0.01" min="0.01" name="hours" placeholder="e.g. 2.50" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Client:</label>
+                        <input type="text" name="client" list="clients" placeholder="Search or type client name..." required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>Task Name:</label>
+                        <input type="text" name="task" placeholder="e.g. Bug Fixes" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Work Details:</label>
+                    <textarea name="details" rows="2" placeholder="e.g. Refactored database queries..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-start" style="background:#007bff;">➕ Save Past Entry</button>
+            </form>
+        </div>
+
+        <datalist id="clients">
+            {% for c in clients %}
+            <option value="{{ c }}">
+            {% endfor %}
+        </datalist>
     </div>
+
+    <script>
+        function switchTab(mode) {
+            const timerTab = document.getElementById('tabTimer');
+            const manualTab = document.getElementById('tabManual');
+            const timerBtn = document.getElementById('tabTimerBtn');
+            const manualBtn = document.getElementById('tabManualBtn');
+
+            if (mode === 'timer') {
+                timerTab.classList.add('active');
+                manualTab.classList.remove('active');
+                timerBtn.classList.add('active');
+                manualBtn.classList.remove('active');
+            } else {
+                timerTab.classList.remove('active');
+                manualTab.classList.add('active');
+                timerBtn.classList.remove('active');
+                manualBtn.classList.add('active');
+            }
+        }
+    </script>
     {% endif %}
 
-    <h3>Completed Logs ({{ today.strftime('%B') }})</h3>
+    <!-- Month Navigation & Controls -->
+    <div class="month-nav-container">
+        <div class="month-nav-controls">
+            <a href="/?month={{ prev_month }}" class="btn-nav" title="Previous Month">◀</a>
+            <select class="month-select" onchange="window.location.href='/?month=' + this.value">
+                {% for opt in month_options %}
+                <option value="{{ opt.value }}" {% if opt.value == selected_month %}selected{% endif %}>
+                    {{ opt.label }}
+                </option>
+                {% endfor %}
+            </select>
+            <a href="/?month={{ next_month }}" class="btn-nav" title="Next Month">▶</a>
+            {% if not is_current_month %}
+            <a href="/" class="btn-today">Current Month</a>
+            {% endif %}
+        </div>
+        <div class="month-stats">
+            Month Total: <span>{{ month_total_hours }} hrs</span>
+        </div>
+    </div>
+
+    <h3>Completed Logs — {{ selected_month_name }}</h3>
     <table>
         <thead>
             <tr>
@@ -116,7 +261,7 @@
                 <th>Client / Task</th>
                 <th>Details</th>
                 <th>Duration</th>
-                <th style="width: 80px;">Actions</th>
+                <th style="width: 80px; text-align: center;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -125,17 +270,24 @@
                 <td class="date-col">{{ log.log_date }}</td>
                 <td>
                     <strong>{{ log.client }}</strong><br>
-                    <small>{{ log.task }}</small>
+                    <small style="color: #555;">{{ log.task }}</small>
                 </td>
                 <td>{{ log.details }}</td>
                 <td><strong>{{ log.hours }} hrs</strong></td>
                 <td style="text-align: center;">
-                    <a href="/edit/{{ log.id }}" style="color: #007bff; text-decoration: none; font-size: 0.9em;">✏️ Edit</a>
+                    <a href="/edit/{{ log.id }}?return_to=month&month={{ selected_month }}" class="btn-edit">✏️ Edit</a>
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="5" style="text-align: center; color: #999; padding: 20px;">No completed logs this month.</td>
+                <td colspan="5" style="text-align: center; color: #888; padding: 30px;">
+                    No completed logs found for <strong>{{ selected_month_name }}</strong>.
+                    {% if is_current_month and month_options|length > 1 %}
+                    <br><small style="color: #666; margin-top: 5px; display: inline-block;">
+                        Use the month selector above to view and modify logs from previous months.
+                    </small>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
